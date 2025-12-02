@@ -1,0 +1,34 @@
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+
+# macOS
+.DS_Store
+
+# Jupyter / notebooks
+.ipynb_checkpoints/
+
+# Python tooling
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# Environment / secrets
+.env
+*.env
+
+# Data & models (keep raw, ignore heavy derived artifacts)
+data/processed/
+*.pkl
+*.joblib
+
+# VSCode / IDE
+.vscode/
+.idea/
+
+

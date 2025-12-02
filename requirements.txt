@@ -1,0 +1,17 @@
+fastapi
+uvicorn
+kafka-python
+python-dotenv
+pandas
+numpy
+scikit-learn
+tensorflow
+matplotlib
+seaborn
+joblib
+streamlit
+plotly
+shap
+requests
+
+

@@ -1,0 +1,17 @@
+timestamp,user_id,device_id,ip_address,location,login_success,access_time,resource_accessed,bytes_transferred,event_label,is_anomaly
+2025-11-19T20:56:28.550437,user_101,device_22,192.168.10.5,"New York, USA",1,20:56:28,sales,500000,anomaly,1
+2025-11-19T20:59:01.627012,user_101,device_22,192.168.10.5,"New York, USA",1,20:59:01,sales,500000,anomaly,1
+2025-11-19T21:00:03.532971,user_89,device_22,192.168.10.5,"New York, USA",1,21:00:03,sales,500000,anomaly,1
+2025-11-19T21:11:28.001347,user_101,device_22,192.168.10.5,"New York, USA",1,21:11:27,sales,500000,anomaly,1
+2025-11-19T21:14:42.454249,user_101,device_22,192.168.10.5,"New York, USA",1,21:14:41,sales,500000,anomaly,1
+2025-11-19T21:17:07.647852,user_101,device_22,192.168.10.5,"New York, USA",1,21:17:07,sales,500000,anomaly,1
+2025-11-19T21:19:28.862549,user_101,device_22,192.168.10.5,"New York, USA",1,21:19:28,sales,500000,anomaly,1
+2025-11-19T21:22:58.796689,user_101,device_22,192.168.10.5,"New York, USA",1,21:22:56,sales,500000,anomaly,1
+2025-11-19T21:25:32.063846,user_101,device_22,192.168.10.5,"New York, USA",1,21:25:30,sales,500000,anomaly,1
+2025-11-19T21:28:29.720166,user_101,device_22,192.168.10.5,"New York, USA",1,21:28:28,sales,500000,anomaly,1
+2025-11-19T21:32:53.648887,user_101,device_22,192.168.10.5,"New York, USA",1,21:32:52,sales,500000,anomaly,1
+2025-11-19T21:40:35.697101,user_101,device_22,192.168.10.5,"New York, USA",1,21:40:34,sales,500000,anomaly,1
+2025-11-19T21:41:10.455222,user_101,device_22,192.168.10.5,"New York, USA",1,21:41:08,sales,500000,anomaly,1
+2025-11-19T21:48:06.295270,user_101,device_22,192.168.10.5,"New York, USA",1,21:48:04,sales,500000,anomaly,1
+2025-11-19T21:49:58.986163,user_101,device_22,192.168.10.5,"New York, USA",1,21:49:57,sales,500000,anomaly,1
+2025-11-19T21:52:12.057737,user_101,device_22,192.168.10.5,"New York, USA",1,21:52:09,sales,500000,anomaly,1
