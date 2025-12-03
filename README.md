@@ -82,9 +82,18 @@ Open `backend/model_training.ipynb` in Jupyter/VS Code and run it to:
 
 4. **Start the FastAPI backend**
 
+If you are using a **conda** environment (e.g. `llms`):
+
 ```bash
 cd backend
-uvicorn anomaly_api:app --host 0.0.0.0 --port 8000
+conda run -n llms python -m uvicorn anomaly_api:app --host 0.0.0.0 --port 8000
+```
+
+If you are using a **virtualenv / venv** and have it activated:
+
+```bash
+cd backend
+python -m uvicorn anomaly_api:app --host 0.0.0.0 --port 8000
 ```
 
 Key endpoints:
