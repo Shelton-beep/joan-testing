@@ -1,125 +1,162 @@
-## Zero-Trust Anomaly Detection in Authentication Logs
+## Zero-Trust Anomaly Detection Platform (Backend + Next.js Frontend)
 
 ### 1. Overview
 
-This project implements a **Zero-Trust Anomaly Detection System** for authentication logs.  
-It uses multiple machine learning models (Isolation Forest, One-Class SVM, Autoencoder) to detect:
+This repository contains an end‑to‑end **Zero‑Trust Anomaly Detection** platform for authentication logs:
 
-- Impossible travel
-- Off-hours logins
-- Multiple failed logins
-- Large data transfers
-- Unusual resource access
+- **Backend (Python / FastAPI)** under `backend/`
 
-The solution includes:
+  - Trained Isolation Forest–based anomaly model, scaler and preprocessing.
+  - REST API for **real‑time login scoring** and **analytics**.
+  - Zero‑Trust policy: any `event_label != "normal"` is treated as an anomaly.
+  - **Email alerts** on anomalous logins.
+  - Real‑time event logging to `backend/data/realtime_events.csv`.
 
-- `model_training.ipynb` – data exploration, feature engineering, and model training
-- `anomaly_api.py` – FastAPI service for real-time anomaly detection
-- `login_ui.py` – Streamlit login simulator with explainability and email alerts
-- `dashboard/app.py` – Streamlit dashboard for monitoring and analysis
-- `producer.py` – Kafka event producer for simulated auth logs
+- **Frontend (Next.js / TypeScript)** under `frontend/`
+  - **Landing page** at `/` explaining the system.
+  - **User login UI** at `/user` that calls the backend `/predict` endpoint.
+  - **SOC / admin dashboard** at `/dashboard` that visualises metrics, time series, locations and detailed events using the same data as the backend.
 
-For a full project narrative, see `PROJECT_REPORT.md`.
+For a full written project narrative and business context, see `backend/PROJECT_REPORT.md`.
 
 ### 2. Project Structure
 
-Key files and directories:
+- **`backend/`**
 
-- `model_training.ipynb` – training notebook
-- `anomaly_api.py` – REST API for `/predict`
-- `login_ui.py` – interactive login simulator UI
-- `dashboard/app.py` – monitoring dashboard
-- `producer.py` – Kafka log producer
-- `data/auth_logs_raw.csv` – example authentication dataset
-- `data/realtime_events.csv` – events logged from the UI (created at runtime)
-- `isoforest_model.pkl`, `scaler.pkl` – trained model and scaler artifacts
-- `docker-compose.yml` – local Kafka/ZooKeeper stack
-- `EMAIL_SETUP.md` – notes for configuring email alerts
-- `PROJECT_REPORT.md` – detailed project report
+  - `anomaly_api.py` – FastAPI application exposing:
+    - `POST /predict` – score a single login event, send email alert on anomaly, append to `realtime_events.csv`.
+    - `GET /events` – JSON list of events from `auth_logs_raw.csv` + `realtime_events.csv` (supports `limit`).
+    - `GET /metrics` – aggregated metrics (`total`, `anomalies`, `anomalyRate`, `avgMttdMinutes`) plus series and breakdowns.
+  - `model_training.ipynb` – data exploration, feature engineering and model training notebook.
+  - `data/auth_logs_raw.csv` – baseline synthetic authentication dataset.
+  - `data/realtime_events.csv` – **runtime** log of scored logins from the UI (created/appended by `/predict`).
+  - `data/processed/` – derived features and preprocessing pipeline (ignored in git by default).
+  - `isoforest_model.pkl`, `scaler.pkl` – trained anomaly model and feature scaler.
+  - `producer.py` – optional Kafka producer for streaming auth events (if you use `docker-compose.yml`).
+  - `docker-compose.yml` – local Kafka/ZooKeeper stack (optional).
+  - `EMAIL_SETUP.md` – configuration details for SMTP / email alerts.
+  - `requirements.txt` – Python backend dependencies.
 
-### 3. Setup
+- **`frontend/`**
+  - `src/app/page.tsx` – marketing-style **landing page**, with entry points to user and admin flows.
+  - `src/app/user/page.tsx` – **user login UI**:
+    - Captures `user_id`, `device_id`, `ip_address`, `location`, `resource_accessed`,
+      `login_success`, `bytes_transferred`, `password`.
+    - Sends JSON to `POST /predict` on the backend and displays **model decision** (`NORMAL` / `ANOMALY`).
+  - `src/app/dashboard/page.tsx` – **SOC dashboard**:
+    - Uses React Query + custom hooks (`useEvents`, `useStats`, `useShap`) to talk to the backend.
+    - Shows key KPIs, login events over time, anomalies by type, location analytics, SHAP explainability,
+      and a filterable / sortable events table.
+  - `src/hooks/` – React hooks for filters and API data.
+  - `src/lib/api.ts` – frontend API client (respects `NEXT_PUBLIC_BACKEND_URL` or falls back to `http://<host>:8000`).
+  - `src/components/ui/` – small shadcn‑style UI primitives (`Card`, `Badge`, `Accordion`).
 
-1. **Clone the repository**
+### 3. Backend Setup
+
+1. **Clone and enter the repo**
 
 ```bash
 git clone <your-repo-url>.git
 cd joan-testing
 ```
 
-2. **Create and activate a virtual environment** (recommended)
+2. **Create and activate a Python environment**
+
+You can use `conda` (e.g. your existing `llms` env) or a plain venv:
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate  # on macOS/Linux
-# .venv\Scripts\activate   # on Windows
-```
-
-3. **Install dependencies**
-
-```bash
+cd backend
+python -m venv .venv        # or: conda create -n llms python=3.11
+source .venv/bin/activate   # on macOS/Linux
+# .venv\Scripts\activate    # on Windows
 pip install -r requirements.txt
 ```
 
-4. **(Optional) Start Kafka stack**
+3. **(Optional) Train or refresh the model**
+
+Open `backend/model_training.ipynb` in Jupyter/VS Code and run it to:
+
+- Load `data/auth_logs_raw.csv`.
+- Engineer features and fit the Isolation Forest.
+- Save `isoforest_model.pkl` and `scaler.pkl`.
+
+4. **Start the FastAPI backend**
 
 ```bash
-docker-compose up -d
-```
-
-### 4. Running the Components
-
-**1. Train or refresh the model (optional)**
-
-Open `model_training.ipynb` in Jupyter/VS Code, run the cells to:
-
-- load `data/auth_logs_raw.csv`
-- engineer features
-- train the Isolation Forest / other models
-- persist `isoforest_model.pkl` and `scaler.pkl` in the project root
-
-**2. Start the API**
-
-```bash
+cd backend
 uvicorn anomaly_api:app --host 0.0.0.0 --port 8000
 ```
 
-**3. Run the Login UI**
+Key endpoints:
+
+- `POST /predict` – score a single login event, send email alert on anomaly, log to `data/realtime_events.csv`.
+- `GET /events?limit=0` – all historical + real‑time events.
+- `GET /metrics` – global metrics and series for dashboards.
+
+### 4. Frontend (Next.js) Setup
+
+1. **Install dependencies**
 
 ```bash
-streamlit run login_ui.py
+cd frontend
+npm install
 ```
 
-This simulates logins, calls the FastAPI `/predict` endpoint, explains decisions (via SHAP), and logs events to `data/realtime_events.csv`.
+2. **Configure backend URL (optional)**
 
-**4. Run the Dashboard**
+By default the frontend will call `http://<current-host>:8000`.  
+To override, create `frontend/.env.local`:
 
 ```bash
-cd dashboard
-streamlit run app.py
+NEXT_PUBLIC_BACKEND_URL=http://127.0.0.1:8000
 ```
 
-The dashboard can:
-
-- load the default dataset (`data/auth_logs_raw.csv`)  
-- merge in real-time events from `data/realtime_events.csv`  
-- visualize anomalies over time, by type, and by location  
-- show key metrics (anomaly rate, MTTD, etc.)
-
-**5. (Optional) Run the Kafka producer**
-
-With Kafka running via `docker-compose.yml`:
+3. **Run the Next.js dev server**
 
 ```bash
-python producer.py
+cd frontend
+npm run dev
 ```
 
-This will send random auth events to the `auth_events` topic that `anomaly_api.py` can consume.
+Then open:
 
-### 5. Email Alert Configuration
+- `http://localhost:3000/` – landing page.
+- `http://localhost:3000/user` – user login UI (calls `/predict`).
+- `http://localhost:3000/dashboard` – SOC dashboard (consumes `/events` and `/metrics`).
 
-Email alerts are sent when anomalies are detected (from both `login_ui.py` and `anomaly_api.py`).
+### 5. How the End‑to‑End System Works
 
-Create a `.env` file in the project root with:
+- **Data & model**
+
+  - Historical auth data lives in `backend/data/auth_logs_raw.csv`.
+  - `model_training.ipynb` prepares features and trains the Isolation Forest and scaler.
+  - `anomaly_api.py` loads both and enforces a Zero‑Trust rule (`event_label != "normal"` → anomaly).
+
+- **Real‑time scoring**
+
+  - Frontend `/user` form sends a JSON login event to `POST /predict`.
+  - Backend:
+    - Scores the event with the Isolation Forest.
+    - Classifies as `"normal"` or `"anomaly"`.
+    - Sends an **email alert** when an anomaly is found.
+    - Appends a row to `backend/data/realtime_events.csv` tagged with the decision.
+
+- **Dashboards**
+  - Backend helper `_load_events_df()` merges:
+    - Historical `auth_logs_raw.csv`
+    - Real‑time `realtime_events.csv`
+  - `/metrics` and `/events` feed both:
+    - The legacy Streamlit views (if you re‑add them) and
+    - The **Next.js dashboard** at `/dashboard`, which:
+      - Shows filtered KPIs (total events, anomalies, anomaly rate, MTTD).
+      - Renders login events over time (by date) and anomalies by type.
+      - Provides location‑level analytics and a filterable event table.
+
+### 6. Email Alert Configuration
+
+Email alerts are sent when anomalies are detected by the backend.
+
+Create a `.env` file (not committed to git) with:
 
 ```bash
 EMAIL_USER="your_gmail_address@gmail.com"
@@ -128,28 +165,23 @@ SMTP_SERVER="smtp.gmail.com"
 SMTP_PORT=587
 ```
 
-Notes:
+See `backend/EMAIL_SETUP.md` for detailed guidance on configuring Gmail / SMTP securely.
 
-- Use a **Gmail App Password**, not your normal password.
-- Ensure 2-Step Verification is enabled on the Google account.
-- See `EMAIL_SETUP.md` for more detailed guidance.
+### 7. GitHub Notes
 
-### 6. Notes for GitHub
+- Large derived artifacts and secrets are ignored via `.gitignore`:
+  - `backend/data/processed/`, `*.pkl`, `*.joblib`, `.env`, etc.
+- Before pushing, double‑check:
+  - No secrets are committed (especially `.env`, API keys, or real email passwords).
+  - `requirements.txt` and `frontend/package.json` reflect the dependencies you’re using.
 
-- Large derived artifacts (`data/processed/`, `*.pkl`, `*.joblib`) and environment files (`.env`) are ignored via `.gitignore`.
-- Before pushing, you may want to:
-  - regenerate `isoforest_model.pkl` and `scaler.pkl` if you reran training
-  - verify that no secrets are committed (especially `.env` or hard-coded passwords)
-
-Once this is in place, you can initialize git and push to GitHub:
+Example initialisation for a new GitHub repo:
 
 ```bash
 git init
 git add .
-git commit -m "Initial commit: Zero-Trust anomaly detection project"
+git commit -m "Initial commit: Zero-Trust anomaly detection platform"
 git branch -M main
 git remote add origin <your-repo-url>
 git push -u origin main
 ```
-
-

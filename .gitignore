@@ -23,7 +23,7 @@ venv/
 *.env
 
 # Data & models (keep raw, ignore heavy derived artifacts)
-data/processed/
+backend/data/processed/
 *.pkl
 *.joblib
 

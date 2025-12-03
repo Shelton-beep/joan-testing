@@ -15,3 +15,8 @@ timestamp,user_id,device_id,ip_address,location,login_success,access_time,resour
 2025-11-19T21:48:06.295270,user_101,device_22,192.168.10.5,"New York, USA",1,21:48:04,sales,500000,anomaly,1
 2025-11-19T21:49:58.986163,user_101,device_22,192.168.10.5,"New York, USA",1,21:49:57,sales,500000,anomaly,1
 2025-11-19T21:52:12.057737,user_101,device_22,192.168.10.5,"New York, USA",1,21:52:09,sales,500000,anomaly,1
+2025-12-02T05:32:21.793062+00:00,user_101,device_22,192.168.10.5,"New York, USA",1,00:32:19,sales,500000,anomaly,1
+2025-12-02T05:37:30.834262+00:00,user_101,device_22,192.168.10.5,"New York, USA",1,00:37:29,sales,500000,anomaly,1
+2025-12-02T05:38:20.609712+00:00,user_101,device_22,192.168.10.5,"New York, USA",1,00:38:18,sales,500000,anomaly,1
+2025-12-02T05:42:45.169207+00:00,user_101,device_22,192.168.10.5,"New York, USA",1,00:42:41,sales,500000,anomaly,1
+2025-12-02T05:46:52.275188+00:00,user_101,device_22,192.168.10.5,"New York, USA",1,00:46:49,sales,500000,anomaly,1
